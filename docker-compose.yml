@@ -1,0 +1,16 @@
+services:
+  androidtv:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: androidtv-remote
+    ports:
+      - "${ANDROIDTV_PORT:-8765}:${ANDROIDTV_PORT:-8765}"
+    environment:
+      ANDROIDTV_PORT: ${ANDROIDTV_PORT:-8765}
+    restart: unless-stopped
+    # mDNS discovery from inside Docker often fails on bridge networks.
+    # On Linux you can try: docker compose --profile host up
+    # Or use "Connect by IP" in the web UI.
+    # profiles: [host]
+    # network_mode: host   # Linux only; uncomment with profile if needed
