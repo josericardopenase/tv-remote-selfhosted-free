@@ -1,28 +1,3 @@
-<div align="center">
-
----
-
-### Docker Hub quick run
-
-Copy–paste (change **`8765`** everywhere if you want another port; keep host and container ports the same):
-
-```bash
-docker run -d --name androidtv-remote \
-  -p 8765:8765 \
-  -e ANDROIDTV_PORT=8765 \
-  -v androidtv-config:/root/.config/androidtv-remote \
-  pepe12341234/tv-remove-selfhosted:latest
-```
-
-On your **phone or tablet** (same Wi‑Fi as the server), open:
-
-**`http://<YOUR-LAN-IP>:8765`**
-
-Replace **`<YOUR-LAN-IP>`** with this machine’s address (e.g. `192.168.1.42`). Replace **`8765`** with your port if you changed it above.
-
-*Image: [`pepe12341234/tv-remove-selfhosted:latest`](https://hub.docker.com/r/pepe12341234/tv-remove-selfhosted)*
-
----
 
 # Self-hosted Android TV Remote
 
@@ -49,6 +24,33 @@ Run a tiny **FastAPI** server on your Mac, PC, or Raspberry Pi. Your phone opens
 Uses the official **Android TV Remote v2** protocol via [`androidtvremote2`](https://pypi.org/project/androidtvremote2/) — the same family of APIs the Google TV app uses on the local network.
 
 ---
+
+<div align="center">
+
+---
+
+### Docker Hub quick run
+
+Copy–paste (change **`8765`** everywhere if you want another port; keep host and container ports the same):
+
+```bash
+docker run -d --name androidtv-remote \
+  -p 8765:8765 \
+  -e ANDROIDTV_PORT=8765 \
+  -v androidtv-config:/root/.config/androidtv-remote \
+  pepe12341234/tv-remove-selfhosted:latest
+```
+
+On your **phone or tablet** (same Wi‑Fi as the server), open:
+
+**`http://<YOUR-LAN-IP>:8765`**
+
+Replace **`<YOUR-LAN-IP>`** with this machine’s address (e.g. `192.168.1.42`). Replace **`8765`** with your port if you changed it above.
+
+*Image: [`pepe12341234/tv-remove-selfhosted:latest`](https://hub.docker.com/r/pepe12341234/tv-remove-selfhosted)*
+
+---
+
 
 ## How it works
 
