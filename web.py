@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import mimetypes
 import os
 import socket
 from pathlib import Path
@@ -19,6 +20,8 @@ from tv_core import TVSession, scan_devices
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 DIST_DIR = STATIC_DIR / "dist"
 DIST_INDEX = DIST_DIR / "index.html"
+
+mimetypes.add_type("application/manifest+json", ".webmanifest")
 
 session = TVSession()
 
@@ -80,6 +83,22 @@ async def index():
     )
 
 
+@app.get("/manifest.webmanifest")
+async def manifest_webmanifest():
+    p = DIST_DIR / "manifest.webmanifest"
+    if not p.is_file():
+        raise HTTPException(status_code=404)
+    return FileResponse(p, media_type="application/manifest+json")
+
+
+@app.get("/icon.svg")
+async def icon_svg():
+    p = DIST_DIR / "icon.svg"
+    if not p.is_file():
+        raise HTTPException(status_code=404)
+    return FileResponse(p, media_type="image/svg+xml")
+
+
 if (DIST_DIR / "assets").is_dir():
     app.mount("/assets", StaticFiles(directory=str(DIST_DIR / "assets")), name="assets")
 
@@ -88,6 +107,8 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.get("/favicon.ico")
 async def favicon():
+    if (DIST_DIR / "icon.svg").is_file():
+        return FileResponse(DIST_DIR / "icon.svg", media_type="image/svg+xml")
     return Response(status_code=204)
 
 

@@ -2,8 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fewer accidental font-size bumps on orientation change (mobile). */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   min-height: 100dvh;
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: env(safe-area-inset-top);
+  overscroll-behavior-y: contain;
+  -webkit-touch-callout: none;
+}
+
+@layer base {
+  button,
+  [type="button"],
+  [type="submit"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
 }

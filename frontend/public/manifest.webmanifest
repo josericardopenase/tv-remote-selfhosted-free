@@ -1,0 +1,25 @@
+{
+  "name": "Android TV Remote",
+  "short_name": "TV Remote",
+  "description": "Self-hosted remote for Android TV / Google TV on your LAN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#141418",
+  "theme_color": "#141418",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

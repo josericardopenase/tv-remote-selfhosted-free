@@ -112,7 +112,7 @@ Nothing goes through the public internet for control: traffic stays between **cl
 - **Three interfaces** — **web** (default), **Tk** desktop (`--tk`), **CLI** (`--cli`)
 - **LAN-ready** — listens on `0.0.0.0` so phones and tablets can connect via `http://<your-pc-ip>:8765`
 - **Web UI** — **Vue 3** + **Vite** + **Tailwind CSS** (`frontend/`), built into `static/dist/` for FastAPI to serve
-- **Docker** — multi-stage image: builds the UI with Node, runs **FastAPI + Uvicorn** on Python slim (**no** Tkinter / `main.py` in the container)
+- **Docker** — pre-built **[`pepe12341234/tv-remove-selfhosted:latest`](https://hub.docker.com/r/pepe12341234/tv-remove-selfhosted)** on Docker Hub; multi-stage Dockerfile builds the UI with Node and runs **FastAPI + Uvicorn** on Python slim (**no** Tkinter / `main.py` in the container)
 
 ---
 
@@ -200,9 +200,9 @@ No necesitas **Git**, **Python** ni descargar el código: solo **Docker** y la i
 
 ---
 
-## Quick start (from source)
+## Quick start
 
-**For the pre-built Docker image**, use [Not a programmer?](#not-a-programmer) — you do **not** need this section.
+**From source** — for the **Docker Hub image**, use [Not a programmer?](#not-a-programmer) instead.
 
 **Requirements:** Python **3.12+**, **Node.js 20+** (for building the web UI), same Wi‑Fi as the TV, [uv](https://github.com/astral-sh/uv) recommended.
 
@@ -230,6 +230,53 @@ Optional: `ANDROIDTV_PORT=9000 uv run python main.py` to change the port.
 
 ## Docker
 
+### Install from Docker Hub (recommended)
+
+Use the public image — **no clone, no build**:
+
+[`pepe12341234/tv-remove-selfhosted:latest`](https://hub.docker.com/r/pepe12341234/tv-remove-selfhosted)
+
+Full **`docker pull` / `docker run`** commands (Mac, Windows, Linux, stop/start) are in **[Not a programmer?](#not-a-programmer)**.
+
+### Build from source (optional)
+
+Clone the repo if you want to **change code** or **build your own image**:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/androidtv.git
+cd androidtv
+```
+
+**Compose** (builds the image locally):
+
+```bash
+docker compose up --build
+```
+
+**Linux:** `docker-compose.yml` uses **`network_mode: host`** — same network as the PC (better mDNS). **Docker Desktop (Mac / Windows):** host mode is unavailable; use:
+
+```bash
+docker compose -f docker-compose.bridge.yml up --build
+```
+
+Change port (Linux host network):
+
+```bash
+ANDROIDTV_PORT=9000 docker compose up --build
+```
+
+**Build / run the image manually (no Compose)**
+
+```bash
+docker build -t androidtv-remote .
+docker run -d --name androidtv-remote --restart unless-stopped \
+  -p 8765:8765 -e ANDROIDTV_PORT=8765 \
+  -v androidtv-config:/root/.config/androidtv-remote \
+  androidtv-remote
+```
+
+### Dockerfile layout
+
 The **Dockerfile** is **multi-stage**:
 
 | Stage | Image | What it does |
@@ -237,39 +284,10 @@ The **Dockerfile** is **multi-stage**:
 | **frontend** | `node:20-alpine` | `npm ci`, copies `frontend/`, runs `npm run build` → `static/dist` |
 | **runtime** | `python:3.12-slim-bookworm` | Installs **FastAPI**, **Uvicorn**, **androidtvremote2**, **zeroconf** with `pip`; copies only **`web.py`**, **`tv_core.py`**, and the built **`static/dist/`** |
 
-`main.py` is **not** copied into the image: it imports **Tkinter**, which is not used in the container. The process is started with **Uvicorn** directly:
+`main.py` is **not** copied into the image: it imports **Tkinter**, which is not used in the container. The process is started with **Uvicorn**:
 
 ```text
 python -m uvicorn web:app --host 0.0.0.0 --port ${ANDROIDTV_PORT:-8765}
-```
-
-### Run with Compose (recommended)
-
-```bash
-docker compose up --build
-```
-
-Then open **http://localhost:8765** (from another device on the LAN: `http://<host-ip>:8765`).
-
-**Linux:** `docker-compose.yml` uses **`network_mode: host`** — the container shares **the same network as your PC** (multicast / mDNS discovery behaves like running Python on the host). It still mounts **`androidtv-config`** → **`/root/.config/androidtv-remote`** for TLS certs and pairing.
-
-**Docker Desktop (Mac / Windows):** host networking is **not supported**. Use the bridge file instead:
-
-```bash
-docker compose -f docker-compose.bridge.yml up --build
-```
-
-Change the listening port (host network), for example:
-
-```bash
-ANDROIDTV_PORT=9000 docker compose up --build
-```
-
-### Build / run the image without Compose
-
-```bash
-docker build -t androidtv-remote .
-docker run --rm -p 8765:8765 -v androidtv-config:/root/.config/androidtv-remote androidtv-remote
 ```
 
 ### Discovery & networking
@@ -301,7 +319,7 @@ First connection may show a code on the TV. The app stores:
 
 Treat these like credentials for your remote identity.
 
-**Docker:** the same paths exist **inside the container** under **`/root/.config/androidtv-remote`**; Compose persists them with the **`androidtv-config`** volume.
+**Docker:** the same paths exist **inside the container** under **`/root/.config/androidtv-remote`**. Use **`-v androidtv-config:/root/.config/androidtv-remote`** (see [Docker Hub install](#not-a-programmer)) or the Compose files — the named volume keeps pairing across container recreates.
 
 ---
 

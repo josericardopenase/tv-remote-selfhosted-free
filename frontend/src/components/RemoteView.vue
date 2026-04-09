@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { apiKey } from "@/api";
+import { useKeyRepeat } from "@/composables/useKeyRepeat";
 
 const status = ref("");
 
@@ -12,13 +13,17 @@ async function sendKey(key: string) {
     status.value = e instanceof Error ? e.message : String(e);
   }
 }
+
+const { bindRepeat } = useKeyRepeat(sendKey);
 </script>
 
 <template>
   <div>
     <header class="mb-6 text-center">
       <h2 class="text-xl font-bold tracking-tight text-zinc-100">Mando</h2>
-      <p class="mt-1 text-xs text-zinc-500">Toca los botones para controlar la TV</p>
+      <p class="mt-1 text-xs text-zinc-500">
+        Mantén pulsado volumen, canales, cruceta y avance/retroceso para repetir.
+      </p>
     </header>
 
     <!-- Primary row: power / home / back -->
@@ -49,19 +54,19 @@ async function sendKey(key: string) {
       </button>
     </div>
 
-    <!-- Volume -->
+    <!-- Volume (hold to repeat) -->
     <div class="mb-5 rounded-2xl border border-white/5 bg-surface p-3 shadow-card">
       <button
         type="button"
-        class="mb-2 w-full rounded-xl border border-white/10 bg-zinc-800 py-3.5 font-semibold text-zinc-100 active:bg-zinc-700"
-        @click="sendKey('VOLUME_UP')"
+        class="mb-2 w-full touch-manipulation select-none rounded-xl border border-white/10 bg-zinc-800 py-3.5 font-semibold text-zinc-100 active:bg-zinc-700"
+        v-bind="bindRepeat('VOLUME_UP')"
       >
         Vol +
       </button>
       <button
         type="button"
-        class="w-full rounded-xl border border-white/10 bg-zinc-800 py-3.5 font-semibold text-zinc-100 active:bg-zinc-700"
-        @click="sendKey('VOLUME_DOWN')"
+        class="w-full touch-manipulation select-none rounded-xl border border-white/10 bg-zinc-800 py-3.5 font-semibold text-zinc-100 active:bg-zinc-700"
+        v-bind="bindRepeat('VOLUME_DOWN')"
       >
         Vol −
       </button>
@@ -105,19 +110,19 @@ async function sendKey(key: string) {
       </button>
     </div>
 
-    <!-- Channels -->
+    <!-- Channels (hold to repeat) -->
     <div class="mb-5 grid grid-cols-2 gap-2">
       <button
         type="button"
-        class="rounded-xl border border-white/10 bg-zinc-800 py-3 text-sm font-semibold text-zinc-100 active:bg-zinc-700"
-        @click="sendKey('CHANNEL_UP')"
+        class="touch-manipulation select-none rounded-xl border border-white/10 bg-zinc-800 py-3 text-sm font-semibold text-zinc-100 active:bg-zinc-700"
+        v-bind="bindRepeat('CHANNEL_UP')"
       >
         Canal +
       </button>
       <button
         type="button"
-        class="rounded-xl border border-white/10 bg-zinc-800 py-3 text-sm font-semibold text-zinc-100 active:bg-zinc-700"
-        @click="sendKey('CHANNEL_DOWN')"
+        class="touch-manipulation select-none rounded-xl border border-white/10 bg-zinc-800 py-3 text-sm font-semibold text-zinc-100 active:bg-zinc-700"
+        v-bind="bindRepeat('CHANNEL_DOWN')"
       >
         Canal −
       </button>
@@ -180,38 +185,38 @@ async function sendKey(key: string) {
         <div />
         <button
           type="button"
-          class="min-h-12 rounded-xl border border-white/10 bg-zinc-800 font-semibold text-zinc-100 active:bg-zinc-700"
-          @click="sendKey('DPAD_UP')"
+          class="min-h-12 touch-manipulation select-none rounded-xl border border-white/10 bg-zinc-800 font-semibold text-zinc-100 active:bg-zinc-700"
+          v-bind="bindRepeat('DPAD_UP')"
         >
           ▲
         </button>
         <div />
         <button
           type="button"
-          class="min-h-12 rounded-xl border border-white/10 bg-zinc-800 font-semibold text-zinc-100 active:bg-zinc-700"
-          @click="sendKey('DPAD_LEFT')"
+          class="min-h-12 touch-manipulation select-none rounded-xl border border-white/10 bg-zinc-800 font-semibold text-zinc-100 active:bg-zinc-700"
+          v-bind="bindRepeat('DPAD_LEFT')"
         >
           ◀
         </button>
         <button
           type="button"
-          class="min-h-12 rounded-xl border border-accent/40 bg-gradient-to-b from-zinc-700/80 to-zinc-900 font-bold text-accent active:bg-zinc-700"
+          class="min-h-12 touch-manipulation select-none rounded-xl border border-accent/40 bg-gradient-to-b from-zinc-700/80 to-zinc-900 font-bold text-accent active:bg-zinc-700"
           @click="sendKey('DPAD_CENTER')"
         >
           OK
         </button>
         <button
           type="button"
-          class="min-h-12 rounded-xl border border-white/10 bg-zinc-800 font-semibold text-zinc-100 active:bg-zinc-700"
-          @click="sendKey('DPAD_RIGHT')"
+          class="min-h-12 touch-manipulation select-none rounded-xl border border-white/10 bg-zinc-800 font-semibold text-zinc-100 active:bg-zinc-700"
+          v-bind="bindRepeat('DPAD_RIGHT')"
         >
           ▶
         </button>
         <div />
         <button
           type="button"
-          class="min-h-12 rounded-xl border border-white/10 bg-zinc-800 font-semibold text-zinc-100 active:bg-zinc-700"
-          @click="sendKey('DPAD_DOWN')"
+          class="min-h-12 touch-manipulation select-none rounded-xl border border-white/10 bg-zinc-800 font-semibold text-zinc-100 active:bg-zinc-700"
+          v-bind="bindRepeat('DPAD_DOWN')"
         >
           ▼
         </button>
@@ -226,8 +231,8 @@ async function sendKey(key: string) {
     <div class="flex flex-wrap justify-center gap-3">
       <button
         type="button"
-        class="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-surface-elevated text-lg active:scale-95"
-        @click="sendKey('MEDIA_REWIND')"
+        class="flex h-12 w-12 touch-manipulation select-none items-center justify-center rounded-full border border-white/10 bg-surface-elevated text-lg active:scale-95"
+        v-bind="bindRepeat('MEDIA_REWIND')"
       >
         ⏮
       </button>
@@ -240,8 +245,8 @@ async function sendKey(key: string) {
       </button>
       <button
         type="button"
-        class="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-surface-elevated text-lg active:scale-95"
-        @click="sendKey('MEDIA_FAST_FORWARD')"
+        class="flex h-12 w-12 touch-manipulation select-none items-center justify-center rounded-full border border-white/10 bg-surface-elevated text-lg active:scale-95"
+        v-bind="bindRepeat('MEDIA_FAST_FORWARD')"
       >
         ⏭
       </button>
