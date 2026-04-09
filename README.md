@@ -8,7 +8,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-[Features](#-features) · [Screenshots](#-screenshots) · [Quick start](#-quick-start) · [API](#-http-api) · [Contributing](#-contributing)
+[Features](#features) · [Screenshots](#screenshots) · [Quick start](#quick-start) · [API](#http-api) · [Contributing](#contributing)
 
 </div>
 
