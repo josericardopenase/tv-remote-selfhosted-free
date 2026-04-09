@@ -8,7 +8,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-[Features](#features) · [Screenshots](#screenshots) · [Quick start](#quick-start) · [API](#http-api) · [Contributing](#contributing)
+[Features](#features) · [Screenshots](#screenshots) · [Quick start](#quick-start) · [Docker](#docker) · [API](#http-api) · [Contributing](#contributing)
 
 </div>
 
@@ -54,6 +54,7 @@ Uses the official **Android TV Remote v2** protocol via [`androidtvremote2`](htt
 - **Three interfaces** — **web** (default), **Tk** desktop (`--tk`), **CLI** (`--cli`)
 - **LAN-ready** — listens on `0.0.0.0` so phones and tablets can connect via `http://<your-pc-ip>:8765`
 - **Web UI** — **Vue 3** + **Vite** + **Tailwind CSS** (`frontend/`), built into `static/dist/` for FastAPI to serve
+- **Docker** — multi-stage image: builds the UI with Node, runs **FastAPI + Uvicorn** on Python slim (**no** Tkinter / `main.py` in the container)
 
 ---
 
@@ -81,6 +82,57 @@ The terminal prints a URL like `http://192.168.x.x:8765`. Open it on your **phon
 
 Optional: `ANDROIDTV_PORT=9000 uv run python main.py` to change the port.
 
+---
+
+## Docker
+
+The **Dockerfile** is **multi-stage**:
+
+| Stage | Image | What it does |
+|-------|--------|----------------|
+| **frontend** | `node:20-alpine` | `npm ci`, copies `frontend/`, runs `npm run build` → `static/dist` |
+| **runtime** | `python:3.12-slim-bookworm` | Installs **FastAPI**, **Uvicorn**, **androidtvremote2**, **zeroconf** with `pip`; copies only **`web.py`**, **`tv_core.py`**, and the built **`static/dist/`** |
+
+`main.py` is **not** copied into the image: it imports **Tkinter**, which is not used in the container. The process is started with **Uvicorn** directly:
+
+```text
+python -m uvicorn web:app --host 0.0.0.0 --port ${ANDROIDTV_PORT:-8765}
+```
+
+### Run with Compose (recommended)
+
+```bash
+docker compose up --build
+```
+
+Then open **http://localhost:8765** (from another device on the LAN: `http://<host-ip>:8765`).
+
+`docker-compose.yml` maps **`${ANDROIDTV_PORT:-8765}`** on both host and container and mounts a named volume **`androidtv-config`** → **`/root/.config/androidtv-remote`** so TLS certs and pairing survive container restarts.
+
+Change the published port, for example:
+
+```bash
+ANDROIDTV_PORT=9000 docker compose up --build
+```
+
+### Build / run the image without Compose
+
+```bash
+docker build -t androidtv-remote .
+docker run --rm -p 8765:8765 -v androidtv-config:/root/.config/androidtv-remote androidtv-remote
+```
+
+### Discovery & networking
+
+- On the default **bridge** network, **mDNS discovery** often **does not** show TVs. Use **Connect by IP** in the web UI, or put the TV’s IP in the app manually.
+- On **Linux**, optional **`docker-compose.host.yml`** uses **`network_mode: host`** so multicast discovery is more likely to work. Usage:
+
+  ```bash
+  docker compose -f docker-compose.host.yml up --build
+  ```
+
+  With host networking, open **http://127.0.0.1:8765** on that machine (behaviour on Docker Desktop for Mac/Windows differs; prefer bridge + IP on those platforms).
+
 ### Web UI development
 
 ```bash
@@ -103,6 +155,8 @@ First connection may show a code on the TV. The app stores:
 ```
 
 Treat these like credentials for your remote identity.
+
+**Docker:** the same paths exist **inside the container** under **`/root/.config/androidtv-remote`**; Compose persists them with the **`androidtv-config`** volume.
 
 ---
 
@@ -131,7 +185,10 @@ Handy for Home Assistant, shortcuts, or your own scripts — same process as the
 ├── web.py               # FastAPI + routes; serves static/dist/index.html
 ├── tv_core.py           # Session, scan, pairing, keys
 ├── frontend/            # Vue 3 + Vite + Tailwind (npm run build → ../static/dist)
-├── static/dist/         # Vite build output (generated)
+├── Dockerfile           # Multi-stage: Node 20 → build UI; Python 3.12 slim → uvicorn web:app
+├── docker-compose.yml   # Port + volume for /root/.config/androidtv-remote
+├── docker-compose.host.yml  # Optional (Linux): host network for mDNS
+├── static/dist/         # Vite build output (local `npm run build`, or produced in Docker)
 ├── assets/screenshots/  # README images
 ├── pyproject.toml
 ├── LICENSE              # MIT
@@ -151,7 +208,7 @@ Handy for Home Assistant, shortcuts, or your own scripts — same process as the
 
 We welcome issues and pull requests. Please read **[CONTRIBUTING.md](CONTRIBUTING.md)** before submitting a PR.
 
-**Ideas:** UI themes, i18n, optional API token, Docker image, systemd unit examples.
+**Ideas:** UI themes, i18n, optional API token, pre-built images on a registry, systemd unit examples.
 
 ---
 
