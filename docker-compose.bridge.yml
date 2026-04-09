@@ -1,17 +1,17 @@
-# Same network as the host PC (Linux): mDNS discovery sees TVs on your LAN.
-# Docker Desktop (Mac/Windows) does not support host networking — use docker-compose.bridge.yml instead.
+# Port mapping (bridge): use on Docker Desktop for Mac/Windows where host network is unavailable.
+# Discovery may be empty — use "Connect by IP" in the web UI.
 services:
   androidtv:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: androidtv-remote
-    network_mode: host
+    ports:
+      - "${ANDROIDTV_PORT:-8765}:${ANDROIDTV_PORT:-8765}"
     environment:
       ANDROIDTV_PORT: ${ANDROIDTV_PORT:-8765}
     restart: unless-stopped
     volumes:
-      # Persist TLS client cert / pairing across container restarts
       - androidtv-config:/root/.config/androidtv-remote
 
 volumes:

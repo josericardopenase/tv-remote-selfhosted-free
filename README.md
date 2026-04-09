@@ -143,11 +143,19 @@ You **do not** need to know how to program. The easiest way is **Docker**: one f
    - **Windows:** open the folder in Explorer, click the address bar, type `powershell`, press Enter.
 
 4. **Start the app**  
-   Copy–paste this line, press **Enter**, and wait until the logs stop scrolling (first run can take a few minutes):
+   Copy–paste **one** of these (first run can take a few minutes):
 
-   ```bash
-   docker compose up --build
-   ```
+   - **Mac or Windows (Docker Desktop):** bridge network — use this file:
+
+     ```bash
+     docker compose -f docker-compose.bridge.yml up --build
+     ```
+
+   - **Linux:** host network (same LAN as your PC):
+
+     ```bash
+     docker compose up --build
+     ```
 
 5. **Use your phone as the remote**  
    - Find your **computer’s IP** on Wi‑Fi (phone and PC must be on the same network).  
@@ -170,7 +178,7 @@ No hace falta saber programar. Lo más fácil es usar **Docker**:
 1. Instala **Docker Desktop** desde [docker.com](https://www.docker.com/products/docker-desktop/) y ábrelo.  
 2. Descarga el proyecto en **ZIP** desde GitHub (**Code** → **Download ZIP**) y descomprímelo (por ejemplo en el escritorio).  
 3. Abre una **terminal** dentro de esa carpeta (la que contiene `docker-compose.yml`).  
-4. Ejecuta: `docker compose up --build` y espera a que termine de construir.  
+4. Ejecuta **una** de estas y espera a que termine de construir: en **Mac o Windows**, `docker compose -f docker-compose.bridge.yml up --build` · en **Linux**, `docker compose up --build`.  
 5. En el **móvil** (misma Wi‑Fi que el PC), abre el navegador en **`http://IP-DE-TU-PC:8765`**.  
 6. Elige la TV o usa **Conectar por IP** si no aparece. Si pide **emparejamiento**, escribe el **código hex de 6 caracteres** que muestra la TV.  
 7. Para parar el servidor, en la terminal pulsa **Ctrl+C**.
@@ -226,9 +234,15 @@ docker compose up --build
 
 Then open **http://localhost:8765** (from another device on the LAN: `http://<host-ip>:8765`).
 
-`docker-compose.yml` maps **`${ANDROIDTV_PORT:-8765}`** on both host and container and mounts a named volume **`androidtv-config`** → **`/root/.config/androidtv-remote`** so TLS certs and pairing survive container restarts.
+**Linux:** `docker-compose.yml` uses **`network_mode: host`** — the container shares **the same network as your PC** (multicast / mDNS discovery behaves like running Python on the host). It still mounts **`androidtv-config`** → **`/root/.config/androidtv-remote`** for TLS certs and pairing.
 
-Change the published port, for example:
+**Docker Desktop (Mac / Windows):** host networking is **not supported**. Use the bridge file instead:
+
+```bash
+docker compose -f docker-compose.bridge.yml up --build
+```
+
+Change the listening port (host network), for example:
 
 ```bash
 ANDROIDTV_PORT=9000 docker compose up --build
@@ -243,14 +257,9 @@ docker run --rm -p 8765:8765 -v androidtv-config:/root/.config/androidtv-remote 
 
 ### Discovery & networking
 
-- On the default **bridge** network, **mDNS discovery** often **does not** show TVs. Use **Connect by IP** in the web UI, or put the TV’s IP in the app manually.
-- On **Linux**, optional **`docker-compose.host.yml`** uses **`network_mode: host`** so multicast discovery is more likely to work. Usage:
-
-  ```bash
-  docker compose -f docker-compose.host.yml up --build
-  ```
-
-  With host networking, open **http://127.0.0.1:8765** on that machine (behaviour on Docker Desktop for Mac/Windows differs; prefer bridge + IP on those platforms).
+- **Different network than the TV?** Discovery uses **mDNS** (multicast) on the local LAN. If the TV is on another **subnet**, **VLAN**, **guest Wi‑Fi**, or a **different router**, the list is often **empty** — not because Docker is “on another internet”, but because **multicast does not cross** those boundaries the way you expect. **Connect by IP** can still work if your PC can **route** to the TV’s IP and nothing blocks the remote port (firewall).
+- **Linux + default `docker-compose.yml`:** **`network_mode: host`** puts the app on the **same network stack as the PC**, so discovery usually matches a non‑Docker run.
+- **Bridge** (`docker-compose.bridge.yml`, or `docker run -p …`): **mDNS** from inside the container often **misses** TVs. Use **Connect by IP** in the web UI.
 
 ### Web UI development
 
@@ -305,8 +314,8 @@ Handy for Home Assistant, shortcuts, or your own scripts — same process as the
 ├── tv_core.py           # Session, scan, pairing, keys
 ├── frontend/            # Vue 3 + Vite + Tailwind (npm run build → ../static/dist)
 ├── Dockerfile           # Multi-stage: Node 20 → build UI; Python 3.12 slim → uvicorn web:app
-├── docker-compose.yml   # Port + volume for /root/.config/androidtv-remote
-├── docker-compose.host.yml  # Optional (Linux): host network for mDNS
+├── docker-compose.yml   # Linux: host network (same LAN as PC) + volume for pairing certs
+├── docker-compose.bridge.yml  # Mac/Windows Docker Desktop: published port + bridge
 ├── static/dist/         # Vite build output (local `npm run build`, or produced in Docker)
 ├── assets/screenshots/  # README images
 ├── pyproject.toml

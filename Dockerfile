@@ -34,6 +34,8 @@ COPY web.py tv_core.py ./
 
 COPY --from=frontend /app/static/dist ./static/dist
 
+# Default compose uses network_mode: host (Linux) so this process shares the PC’s
+# network — mDNS discovery matches running on the host. With bridge + -p, use Connect by IP.
 EXPOSE 8765
 
 # main.py pulls in Tkinter; container only serves web:app
