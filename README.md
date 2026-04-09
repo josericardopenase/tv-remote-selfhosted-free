@@ -1,5 +1,29 @@
 <div align="center">
 
+---
+
+### Docker Hub quick run
+
+Copy–paste (change **`8765`** everywhere if you want another port; keep host and container ports the same):
+
+```bash
+docker run -d --name androidtv-remote \
+  -p 8765:8765 \
+  -e ANDROIDTV_PORT=8765 \
+  -v androidtv-config:/root/.config/androidtv-remote \
+  pepe12341234/tv-remove-selfhosted:latest
+```
+
+On your **phone or tablet** (same Wi‑Fi as the server), open:
+
+**`http://<YOUR-LAN-IP>:8765`**
+
+Replace **`<YOUR-LAN-IP>`** with this machine’s address (e.g. `192.168.1.42`). Replace **`8765`** with your port if you changed it above.
+
+*Image: [`pepe12341234/tv-remove-selfhosted:latest`](https://hub.docker.com/r/pepe12341234/tv-remove-selfhosted)*
+
+---
+
 # Self-hosted Android TV Remote
 
 ## **TOTALLY FUCKING FREE · NO ADS · NO TRACKING · NO SUBSCRIPTION · NO SIGN‑UP**
@@ -14,7 +38,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-[Features](#features) · [How it works](#how-it-works) · [Screenshots](#screenshots) · [Not a programmer?](#not-a-programmer) · [Quick start](#quick-start) · [Docker](#docker) · [API](#http-api) · [Contributing](#contributing)
+[Docker Hub (1 command)](#docker-hub-quick-run) · [Features](#features) · [How it works](#how-it-works) · [Screenshots](#screenshots) · [Not a programmer?](#not-a-programmer) · [Quick start](#quick-start) · [Docker](#docker) · [API](#http-api) · [Contributing](#contributing)
 
 </div>
 
