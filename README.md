@@ -1,3 +1,4 @@
+<div align="center">
 
 # Self-hosted Android TV Remote
 
@@ -19,7 +20,9 @@
 
 ---
 
-Run a tiny **FastAPI** server on your Mac, PC, or Raspberry Pi. Your phone opens a **mobile-first web UI** to discover TVs, pair once, and send keys (power, D‑pad, volume, media). Prefer a **desktop window** or **terminal**? Those are included too.
+**Install with Docker** (recommended): pull **`pepe12341234/tv-remove-selfhosted:latest`** from Docker Hub — see [Not a programmer?](#not-a-programmer) or [Docker](#docker). No clone required.
+
+Run a tiny **FastAPI** server on your Mac, PC, or Raspberry Pi. Your phone opens a **mobile-first web UI** to discover TVs, pair once, and send keys (power, D‑pad, volume, media). Prefer a **desktop window** or **terminal**? Those are included when you run from source (below).
 
 Uses the official **Android TV Remote v2** protocol via [`androidtvremote2`](https://pypi.org/project/androidtvremote2/) — the same family of APIs the Google TV app uses on the local network.
 
@@ -27,30 +30,25 @@ Uses the official **Android TV Remote v2** protocol via [`androidtvremote2`](htt
 
 <div align="center">
 
----
+### Docker Hub — one command
 
-### Docker Hub quick run
-
-Copy–paste (change **`8765`** everywhere if you want another port; keep host and container ports the same):
+No Git, no Python, no project folder — only Docker:
 
 ```bash
-docker run -d --name androidtv-remote \
-  -p 8765:8765 \
-  -e ANDROIDTV_PORT=8765 \
+docker pull pepe12341234/tv-remove-selfhosted:latest && \
+docker run -d --name androidtv-remote --restart unless-stopped \
+  -p 8765:8765 -e ANDROIDTV_PORT=8765 \
   -v androidtv-config:/root/.config/androidtv-remote \
   pepe12341234/tv-remove-selfhosted:latest
 ```
 
-On your **phone or tablet** (same Wi‑Fi as the server), open:
-
-**`http://<YOUR-LAN-IP>:8765`**
-
-Replace **`<YOUR-LAN-IP>`** with this machine’s address (e.g. `192.168.1.42`). Replace **`8765`** with your port if you changed it above.
+On your **phone**, open **`http://<YOUR-LAN-IP>:8765`** (same Wi‑Fi as the PC). **Linux / Raspberry Pi** with host networking: [full commands](#not-a-programmer).
 
 *Image: [`pepe12341234/tv-remove-selfhosted:latest`](https://hub.docker.com/r/pepe12341234/tv-remove-selfhosted)*
 
----
+</div>
 
+---
 
 ## How it works
 
@@ -82,15 +80,15 @@ Nothing goes through the public internet for control: traffic stays between **cl
 
 ## Screenshots
 
-<p align="center">
-  <img src="assets/screenshots/screenshot-connect.png" alt="Discover and connect to TVs on your network" width="320" />
-  &nbsp;&nbsp;
-  <img src="assets/screenshots/screenshot-remote.png" alt="Virtual remote — D-pad, volume, media keys" width="320" />
-</p>
+<div align="center">
 
-<p align="center">
-  <em>Left: discover devices by name (mDNS). Right: full remote in the browser — self-hosted on your LAN.</em>
-</p>
+<img src="assets/screenshots/screenshot-connect.png" alt="Discover and connect to TVs on your network" width="320" />
+&nbsp;&nbsp;
+<img src="assets/screenshots/screenshot-remote.png" alt="Virtual remote — D-pad, volume, media keys" width="320" />
+
+*Left: discover devices by name (mDNS). Right: full remote in the browser — self-hosted on your LAN.*
+
+</div>
 
 > **Note:** Screenshots are illustrative mockups of the UI style. Your real device list and layout match the live app.
 
@@ -99,7 +97,7 @@ Nothing goes through the public internet for control: traffic stays between **cl
 ## Why self-hosted?
 
 | | |
-|---|---|
+| --- | --- |
 | **Privacy** | Traffic stays on your LAN. No third-party server sees when you change channels. |
 | **Reliability** | Works when the internet is down, as long as Wi‑Fi and the TV are up. |
 | **Hackable** | REST API, plain Python — script it, theme it, or wrap it in your own stack. |
@@ -120,72 +118,91 @@ Nothing goes through the public internet for control: traffic stays between **cl
 
 ## Not a programmer?
 
-You **do not** need to know how to program. The easiest way is **Docker**: one free app on your computer, then **one command**.
+You **do not** need Git, Python, or Node — only **Docker** and the **pre-built image** on [Docker Hub](https://hub.docker.com/r/pepe12341234/tv-remove-selfhosted). The first `docker pull` downloads the app; **`docker run`** starts it. Pairing data is kept in a Docker volume so it survives restarts.
 
 ### What you need
 
-- A **Windows**, **Mac**, or **Linux** PC that stays on while you use the remote  
-- The PC and the **TV on the same Wi‑Fi** (same home network)  
-- About **10 minutes** the first time  
+- **Docker** — [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Mac / Windows) or [Docker Engine](https://docs.docker.com/engine/install/) (Linux / Raspberry Pi)
+- A PC that stays on while you use the remote, and the **TV on the same Wi‑Fi** as that PC
+- A few minutes the first time (`docker pull` can be large)
 
-### Steps (Docker — recommended)
+### Install — pull the image and run it
 
-1. **Install Docker Desktop**  
-   - Download: [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)  
-   - Install it like any normal app and **start Docker** (whale icon in the menu bar / taskbar).
+Open **Terminal** (Mac / Linux) or **PowerShell** (Windows). **Mac or Windows:** use the **`-p`** form (Docker Desktop does not support host networking).
 
-2. **Get this project on your computer**  
-   - On GitHub: green **Code** button → **Download ZIP**  
-   - Unzip it (e.g. to your **Desktop**). You should see a folder that contains `docker-compose.yml`.
+**Mac / Windows (Docker Desktop)**
 
-3. **Open a terminal in that folder**  
-   - **Mac:** right‑click the folder → **Services** → **New Terminal at Folder** (or open Terminal, type `cd `, drag the folder into the window, press Enter).  
-   - **Windows:** open the folder in Explorer, click the address bar, type `powershell`, press Enter.
+```bash
+docker pull pepe12341234/tv-remove-selfhosted:latest
 
-4. **Start the app**  
-   Copy–paste **one** of these (first run can take a few minutes):
+docker run -d --name androidtv-remote --restart unless-stopped \
+  -p 8765:8765 \
+  -e ANDROIDTV_PORT=8765 \
+  -v androidtv-config:/root/.config/androidtv-remote \
+  pepe12341234/tv-remove-selfhosted:latest
+```
 
-   - **Mac or Windows (Docker Desktop):** bridge network — use this file:
+**Linux (recommended — same network stack as the PC, better TV discovery)**
 
-     ```bash
-     docker compose -f docker-compose.bridge.yml up --build
-     ```
+```bash
+docker pull pepe12341234/tv-remove-selfhosted:latest
 
-   - **Linux:** host network (same LAN as your PC):
+docker run -d --name androidtv-remote --restart unless-stopped \
+  --network host \
+  -e ANDROIDTV_PORT=8765 \
+  -v androidtv-config:/root/.config/androidtv-remote \
+  pepe12341234/tv-remove-selfhosted:latest
+```
 
-     ```bash
-     docker compose up --build
-     ```
+If `androidtv-remote` already exists from a previous try: `docker rm -f androidtv-remote` and run the `docker run` again.
 
-5. **Use your phone as the remote**  
-   - Find your **computer’s IP** on Wi‑Fi (phone and PC must be on the same network).  
-   - On the phone’s browser, open: **`http://THAT-IP:8765`**  
-     Example: `http://192.168.1.42:8765`  
-   - Pick your TV from the list (or use **Connect by IP** if the list is empty).  
-   - If the TV asks for **pairing**, type the **6 hex characters** shown on the TV screen.
+### Use your phone as the remote
 
-6. **Stop the server** when you’re done  
-   In the terminal, press **Ctrl+C**.
+1. Find the PC’s **LAN IP** (same Wi‑Fi as the TV).
+2. On the phone’s browser: **`http://<THAT-IP>:8765`** (example: `http://192.168.1.42:8765`). On the **Linux server itself**, you can use **`http://127.0.0.1:8765`** or **`http://localhost:8765`**.
+3. Pick your TV from the list, or **Connect by IP** if the list is empty.
+4. If the TV shows a **pairing** code, enter the **6 hex characters** in the app.
+
+### Stop, start, or remove
+
+```bash
+docker stop androidtv-remote    # stop
+docker start androidtv-remote   # start again
+docker rm -f androidtv-remote # remove container (volume keeps pairing — add -v androidtv-config to delete it)
+```
+
+### Another port (Mac / Windows)
+
+Use the **same number** for `-p` and `-e` (example **9000**):
+
+```bash
+docker run -d --name androidtv-remote --restart unless-stopped \
+  -p 9000:9000 -e ANDROIDTV_PORT=9000 \
+  -v androidtv-config:/root/.config/androidtv-remote \
+  pepe12341234/tv-remove-selfhosted:latest
+```
+
+On **Linux** with `--network host`, only **`-e ANDROIDTV_PORT=9000`** matters; open **`http://<IP>:9000`**.
 
 ### If the TV list is empty
 
-That’s normal in Docker on some networks. Tap **“Connect by IP”**, find your TV’s IP in **Android TV → Settings → Network**, and enter it.
+Common with **bridge** networking. Tap **Connect by IP** and enter the TV’s IP from **Android TV → Settings → Network**.
 
 ### ¿No eres programador? (español)
 
-No hace falta saber programar. Lo más fácil es usar **Docker**:
+No necesitas **Git**, **Python** ni descargar el código: solo **Docker** y la imagen **`pepe12341234/tv-remove-selfhosted:latest`**.
 
-1. Instala **Docker Desktop** desde [docker.com](https://www.docker.com/products/docker-desktop/) y ábrelo.  
-2. Descarga el proyecto en **ZIP** desde GitHub (**Code** → **Download ZIP**) y descomprímelo (por ejemplo en el escritorio).  
-3. Abre una **terminal** dentro de esa carpeta (la que contiene `docker-compose.yml`).  
-4. Ejecuta **una** de estas y espera a que termine de construir: en **Mac o Windows**, `docker compose -f docker-compose.bridge.yml up --build` · en **Linux**, `docker compose up --build`.  
-5. En el **móvil** (misma Wi‑Fi que el PC), abre el navegador en **`http://IP-DE-TU-PC:8765`**.  
-6. Elige la TV o usa **Conectar por IP** si no aparece. Si pide **emparejamiento**, escribe el **código hex de 6 caracteres** que muestra la TV.  
-7. Para parar el servidor, en la terminal pulsa **Ctrl+C**.
+1. Instala **Docker** ([Docker Desktop](https://www.docker.com/products/docker-desktop/) en Mac/Windows, o Docker en Linux / Raspberry Pi).
+2. Abre una **terminal** y ejecuta **`docker pull`** y luego **`docker run`** como arriba: en **Mac o Windows** el bloque con **`-p 8765:8765`**; en **Linux** el bloque con **`--network host`**.
+3. En el **móvil** (misma Wi‑Fi), abre **`http://IP-DE-TU-PC:8765`**.
+4. Elige la TV o **Conectar por IP**. Si pide **emparejamiento**, el código **hex de 6 caracteres** en la TV.
+5. Para **parar**: `docker stop androidtv-remote`. Para **volver a arrancar**: `docker start androidtv-remote`.
 
 ---
 
-## Quick start
+## Quick start (from source)
+
+**For the pre-built Docker image**, use [Not a programmer?](#not-a-programmer) — you do **not** need this section.
 
 **Requirements:** Python **3.12+**, **Node.js 20+** (for building the web UI), same Wi‑Fi as the TV, [uv](https://github.com/astral-sh/uv) recommended.
 
@@ -342,9 +359,9 @@ We welcome issues and pull requests. Please read **[CONTRIBUTING.md](CONTRIBUTIN
 
 ## Credits
 
-- [androidtvremote2](https://pypi.org/project/androidtvremote2/) — protocol implementation  
-- [zeroconf](https://pypi.org/project/zeroconf/) — mDNS discovery  
-- [FastAPI](https://fastapi.tiangolo.com/) & [Uvicorn](https://www.uvicorn.org/) — web stack  
+- [androidtvremote2](https://pypi.org/project/androidtvremote2/) — protocol implementation
+- [zeroconf](https://pypi.org/project/zeroconf/) — mDNS discovery
+- [FastAPI](https://fastapi.tiangolo.com/) & [Uvicorn](https://www.uvicorn.org/) — web stack
 
 ---
 
