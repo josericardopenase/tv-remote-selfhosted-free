@@ -2,13 +2,19 @@
 
 # Self-hosted Android TV Remote
 
+## **TOTALLY FUCKING FREE · NO ADS · NO TRACKING · NO SUBSCRIPTION · NO SIGN‑UP**
+
+*No login walls. No “watch an ad to unlock volume.” No data sold to ad networks. It runs on **your** Wi‑Fi and doesn’t nag you.*
+
+*Estoy harto de aplicaciones de TV remote que no paran de sacarte anuncios — por eso existe esto.*
+
 **Control your Google TV / Android TV from any browser on your Wi‑Fi — no cloud, no vendor account.**
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-[Features](#features) · [Screenshots](#screenshots) · [Quick start](#quick-start) · [Docker](#docker) · [API](#http-api) · [Contributing](#contributing)
+[Features](#features) · [How it works](#how-it-works) · [Screenshots](#screenshots) · [Not a programmer?](#not-a-programmer) · [Quick start](#quick-start) · [Docker](#docker) · [API](#http-api) · [Contributing](#contributing)
 
 </div>
 
@@ -17,6 +23,34 @@
 Run a tiny **FastAPI** server on your Mac, PC, or Raspberry Pi. Your phone opens a **mobile-first web UI** to discover TVs, pair once, and send keys (power, D‑pad, volume, media). Prefer a **desktop window** or **terminal**? Those are included too.
 
 Uses the official **Android TV Remote v2** protocol via [`androidtvremote2`](https://pypi.org/project/androidtvremote2/) — the same family of APIs the Google TV app uses on the local network.
+
+---
+
+## How it works
+
+**One** small computer on your network runs the app (a **Raspberry Pi**, an old laptop, a NAS, or your desktop). It **hosts the web page** and the **API**. **Many** phones or tablets can open the same URL at once — each browser loads the UI from that machine; the server is the single place that pairs with the TV and sends remote keys.
+
+```mermaid
+flowchart TB
+  subgraph lan["Your home Wi‑Fi LAN"]
+    subgraph clients["Phones & tablets — any browser"]
+      M1["📱"]
+      M2["📱"]
+      M3["📱"]
+    end
+    subgraph server["Home server — Pi, PC, Mac, Docker…"]
+      S["FastAPI + Uvicorn\n• serves web UI\n• REST /api"]
+    end
+    TV["📺 Android TV / Google TV"]
+  end
+
+  M1 -->|"http://server-ip:8765"| S
+  M2 -->|"http://server-ip:8765"| S
+  M3 -->|"http://server-ip:8765"| S
+  S -->|"Remote v2 — TLS, pairing, keys"| TV
+```
+
+Nothing goes through the public internet for control: traffic stays between **clients ↔ your server** and **server ↔ TV** on the LAN.
 
 ---
 
@@ -55,6 +89,65 @@ Uses the official **Android TV Remote v2** protocol via [`androidtvremote2`](htt
 - **LAN-ready** — listens on `0.0.0.0` so phones and tablets can connect via `http://<your-pc-ip>:8765`
 - **Web UI** — **Vue 3** + **Vite** + **Tailwind CSS** (`frontend/`), built into `static/dist/` for FastAPI to serve
 - **Docker** — multi-stage image: builds the UI with Node, runs **FastAPI + Uvicorn** on Python slim (**no** Tkinter / `main.py` in the container)
+
+---
+
+## Not a programmer?
+
+You **do not** need to know how to program. The easiest way is **Docker**: one free app on your computer, then **one command**.
+
+### What you need
+
+- A **Windows**, **Mac**, or **Linux** PC that stays on while you use the remote  
+- The PC and the **TV on the same Wi‑Fi** (same home network)  
+- About **10 minutes** the first time  
+
+### Steps (Docker — recommended)
+
+1. **Install Docker Desktop**  
+   - Download: [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)  
+   - Install it like any normal app and **start Docker** (whale icon in the menu bar / taskbar).
+
+2. **Get this project on your computer**  
+   - On GitHub: green **Code** button → **Download ZIP**  
+   - Unzip it (e.g. to your **Desktop**). You should see a folder that contains `docker-compose.yml`.
+
+3. **Open a terminal in that folder**  
+   - **Mac:** right‑click the folder → **Services** → **New Terminal at Folder** (or open Terminal, type `cd `, drag the folder into the window, press Enter).  
+   - **Windows:** open the folder in Explorer, click the address bar, type `powershell`, press Enter.
+
+4. **Start the app**  
+   Copy–paste this line, press **Enter**, and wait until the logs stop scrolling (first run can take a few minutes):
+
+   ```bash
+   docker compose up --build
+   ```
+
+5. **Use your phone as the remote**  
+   - Find your **computer’s IP** on Wi‑Fi (phone and PC must be on the same network).  
+   - On the phone’s browser, open: **`http://THAT-IP:8765`**  
+     Example: `http://192.168.1.42:8765`  
+   - Pick your TV from the list (or use **Connect by IP** if the list is empty).  
+   - If the TV asks for **pairing**, type the **6 hex characters** shown on the TV screen.
+
+6. **Stop the server** when you’re done  
+   In the terminal, press **Ctrl+C**.
+
+### If the TV list is empty
+
+That’s normal in Docker on some networks. Tap **“Connect by IP”**, find your TV’s IP in **Android TV → Settings → Network**, and enter it.
+
+### ¿No eres programador? (español)
+
+No hace falta saber programar. Lo más fácil es usar **Docker**:
+
+1. Instala **Docker Desktop** desde [docker.com](https://www.docker.com/products/docker-desktop/) y ábrelo.  
+2. Descarga el proyecto en **ZIP** desde GitHub (**Code** → **Download ZIP**) y descomprímelo (por ejemplo en el escritorio).  
+3. Abre una **terminal** dentro de esa carpeta (la que contiene `docker-compose.yml`).  
+4. Ejecuta: `docker compose up --build` y espera a que termine de construir.  
+5. En el **móvil** (misma Wi‑Fi que el PC), abre el navegador en **`http://IP-DE-TU-PC:8765`**.  
+6. Elige la TV o usa **Conectar por IP** si no aparece. Si pide **emparejamiento**, escribe el **código hex de 6 caracteres** que muestra la TV.  
+7. Para parar el servidor, en la terminal pulsa **Ctrl+C**.
 
 ---
 
