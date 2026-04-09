@@ -8,7 +8,7 @@ import socket
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -17,6 +17,8 @@ from androidtvremote2 import CannotConnect, InvalidAuth
 from tv_core import TVSession, scan_devices
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+DIST_DIR = STATIC_DIR / "dist"
+DIST_INDEX = DIST_DIR / "index.html"
 
 session = TVSession()
 
@@ -67,11 +69,19 @@ class KeyBody(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    index_path = STATIC_DIR / "index.html"
-    if index_path.is_file():
-        return HTMLResponse(index_path.read_text(encoding="utf-8"))
-    return HTMLResponse("<p>Missing static/index.html</p>", status_code=500)
+    if DIST_INDEX.is_file():
+        return FileResponse(DIST_INDEX)
+    legacy = STATIC_DIR / "index.html"
+    if legacy.is_file():
+        return HTMLResponse(legacy.read_text(encoding="utf-8"))
+    return HTMLResponse(
+        "<p>UI not built. Run: <code>cd frontend && npm install && npm run build</code></p>",
+        status_code=503,
+    )
 
+
+if (DIST_DIR / "assets").is_dir():
+    app.mount("/assets", StaticFiles(directory=str(DIST_DIR / "assets")), name="assets")
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 

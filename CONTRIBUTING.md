@@ -19,6 +19,7 @@ Thanks for helping improve this project. Here is how we work.
 
 - Prefer **clear names** over clever one-liners.
 - **Async** code stays in `tv_core.py` / `web.py`; Tk stays in `main.py` unless we split modules further.
+- **Web UI** lives in `frontend/` (Vue 3 + Tailwind). After UI changes, run `npm run build` in `frontend/` and commit `static/dist/` if your workflow ships prebuilt assets.
 - Avoid new heavy dependencies unless there is a strong reason.
 
 ## Reporting issues

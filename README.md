@@ -53,19 +53,23 @@ Uses the official **Android TV Remote v2** protocol via [`androidtvremote2`](htt
 - **Reconnect** — handles dropped sessions (idle timeouts) with automatic reconnect
 - **Three interfaces** — **web** (default), **Tk** desktop (`--tk`), **CLI** (`--cli`)
 - **LAN-ready** — listens on `0.0.0.0` so phones and tablets can connect via `http://<your-pc-ip>:8765`
+- **Web UI** — **Vue 3** + **Vite** + **Tailwind CSS** (`frontend/`), built into `static/dist/` for FastAPI to serve
 
 ---
 
 ## Quick start
 
-**Requirements:** Python **3.12+**, same Wi‑Fi as the TV, [uv](https://github.com/astral-sh/uv) recommended.
+**Requirements:** Python **3.12+**, **Node.js 20+** (for building the web UI), same Wi‑Fi as the TV, [uv](https://github.com/astral-sh/uv) recommended.
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/androidtv.git
 cd androidtv
+cd frontend && npm install && npm run build && cd ..
 uv sync
 uv run python main.py
 ```
+
+If `static/dist/` is missing, the server returns `503` with build instructions. After changing Vue/Tailwind code, run `npm run build` in `frontend/` again (or use `npm run dev` for local UI development — see below).
 
 The terminal prints a URL like `http://192.168.x.x:8765`. Open it on your **phone** (same network).
 
@@ -76,6 +80,16 @@ The terminal prints a URL like `http://192.168.x.x:8765`. Open it on your **phon
 | **Terminal** | `uv run python main.py --cli` |
 
 Optional: `ANDROIDTV_PORT=9000 uv run python main.py` to change the port.
+
+### Web UI development
+
+```bash
+cd frontend
+npm install
+npm run dev   # Vite on http://127.0.0.1:5173 — proxy API to your FastAPI or run backend separately
+```
+
+For a full-stack flow, run `uv run python main.py` in one terminal and `npm run dev` in another; configure Vite `server.proxy` if you want `/api` forwarded to the Python backend (optional). For production, always `npm run build` so `static/dist/` is up to date.
 
 ---
 
@@ -114,9 +128,10 @@ Handy for Home Assistant, shortcuts, or your own scripts — same process as the
 ```
 .
 ├── main.py              # Entry: web (default) | --tk | --cli
-├── web.py               # FastAPI + routes
+├── web.py               # FastAPI + routes; serves static/dist/index.html
 ├── tv_core.py           # Session, scan, pairing, keys
-├── static/index.html    # Web remote UI
+├── frontend/            # Vue 3 + Vite + Tailwind (npm run build → ../static/dist)
+├── static/dist/         # Vite build output (generated)
 ├── assets/screenshots/  # README images
 ├── pyproject.toml
 ├── LICENSE              # MIT
